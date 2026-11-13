@@ -8129,6 +8129,15 @@ window.setImg = (id, src) => {
     }
 };
 
+// 设置一行文字；放不下时由 applyMarqueeChecks 换成滚动显示
+function setRollingText(el, text) {
+    if (!el) return;
+    el.innerText = text;
+    el.setAttribute('data-text', text);
+    el.classList.add('truncate', 'dynamic-marquee');
+    el.classList.remove('overflow-hidden');
+}
+
 function updatePlayerInfo(song, actualQuality) {
     window.RatingManager?.current(song);
     // Bottom Player - 更新标题
@@ -8226,8 +8235,8 @@ function updatePlayerInfo(song, actualQuality) {
     const detailContainer = document.getElementById('detail-title-container');
 
     if (detailTitle && detailContainer) {
-        // 直接设置文本，由 CSS 处理双行换行和省略号
-        detailTitle.innerText = song.name;
+        // 桌面端由 CSS 处理双行换行；手机 / 平板上单行显示，太长时滚动
+        setRollingText(detailTitle, song.name);
         detailTitle.classList.remove('animate-marquee');
         detailTitle.onclick = (e) => {
             e.stopPropagation();
@@ -8242,7 +8251,8 @@ function updatePlayerInfo(song, actualQuality) {
 
     const detailArtist = document.getElementById('detail-artist');
     if (detailArtist) {
-        detailArtist.innerText = song.singer;
+        setRollingText(detailArtist, song.singer);
+        applyMarqueeChecks(document.getElementById('view-player-detail'));
         detailArtist.onclick = async (e) => {
             e.stopPropagation();
             if (window.innerWidth < 1025) {
@@ -10716,8 +10726,9 @@ window.addEventListener('popstate', (e) => {
 });
 
 function updateDetailInfo(song) {
-    document.getElementById('detail-title').innerText = song.name;
-    document.getElementById('detail-artist').innerText = song.singer;
+    setRollingText(document.getElementById('detail-title'), song.name);
+    setRollingText(document.getElementById('detail-artist'), song.singer);
+    applyMarqueeChecks(document.getElementById('view-player-detail'));
     const imgUrl = getImgUrl(song);
     // Use high res image if possible or same URL
     setImg('detail-cover', imgUrl);
